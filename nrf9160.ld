@@ -1,0 +1,38 @@
+MEMORY
+{
+	flash   (rx)  : ORIGIN = 0x00000000, LENGTH = 0x40000
+	sram0   (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
+}
+
+ENTRY(md_init)
+SECTIONS
+{
+	. = 0x0;
+	.start . : {
+		*start.o(.text);
+	} > flash
+
+	.text : {
+		*(.exception);
+		*(.text*);
+	} > flash
+
+	.rodata : {
+		*(.rodata*);
+	} > flash
+
+	. = .;
+	_smem = ABSOLUTE(.);
+	.data : {
+		_sdata = ABSOLUTE(.);
+		*(.data*);
+		_edata = ABSOLUTE(.);
+	} > sram0 AT > flash
+
+	.bss : {
+		_sbss = ABSOLUTE(.);
+		*(.bss*)
+		*(COMMON)
+		_ebss = ABSOLUTE(.);
+	} > sram0
+}

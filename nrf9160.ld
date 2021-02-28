@@ -1,8 +1,9 @@
 MEMORY
 {
-	flash   (rx)  : ORIGIN = 0x00000000, LENGTH = 0x40000
+	flash   (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00000
 	sram0   (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
 }
+
 
 ENTRY(md_init)
 SECTIONS
@@ -22,17 +23,24 @@ SECTIONS
 	} > flash
 
 	. = .;
-	_smem = ABSOLUTE(.);
-	.data : {
-		_sdata = ABSOLUTE(.);
+	. = ALIGN(4);
+    __etext = .;
+	.data : AT (__etext)
+	{
+		__data_start__ = .;
 		*(.data*);
-		_edata = ABSOLUTE(.);
-	} > sram0 AT > flash
+		. = ALIGN(4);
+        /* All data end */
+        __data_end__ = .;
+	} > sram0
+
 
 	.bss : {
-		_sbss = ABSOLUTE(.);
+		. = ALIGN(4);
+        __bss_start__ = .;
 		*(.bss*)
 		*(COMMON)
-		_ebss = ABSOLUTE(.);
+		. = ALIGN(4);
+        __bss_end__ = .;
 	} > sram0
 }

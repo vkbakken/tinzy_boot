@@ -1,14 +1,16 @@
 MEMORY
 {
-	flash   (rx)  : ORIGIN = 0x00000000, LENGTH = 0x00000
-	sram0   (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
+	flash   (rx)  : ORIGIN = 0x00000000, LENGTH = 8k
+	sram_sec   (rwx) : ORIGIN = 0x20000000, LENGTH = 64K
 }
 
 
-ENTRY(md_init)
 SECTIONS
 {
 	. = 0x0;
+	.vec_tbl . : {
+		*vec_tbl.o(.text);
+	} > flash
 	.start . : {
 		*start.o(.text);
 	} > flash
@@ -32,7 +34,7 @@ SECTIONS
 		. = ALIGN(4);
         /* All data end */
         __data_end__ = .;
-	} > sram0
+	} > sram_sec
 
 
 	.bss : {
@@ -42,5 +44,7 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
         __bss_end__ = .;
-	} > sram0
+	} > sram_sec
+
+    PROVIDE(__stack = ORIGIN(sram_sec) + LENGTH(sram_sec));
 }

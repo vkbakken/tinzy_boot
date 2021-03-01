@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "nrf.h"
 
@@ -6,6 +7,9 @@
 #define	APP_ENTRY	        0x40000
 #define FLASH_SIZE          0x100000
 #define FLASH_REGION_SIZE   (32 * 1024)
+#define SRAM_SIZE          	(256 * 1024)
+#define SRAM_REGION_SIZE   	(8 * 1024)
+
 
 extern unsigned int __etext;
 extern unsigned int __data_start__;
@@ -38,35 +42,56 @@ unsigned int __boot_exceptions[] __attribute__ ((section (".vec_tbl"), used)) = 
 };
 
 
+static void config_peripheral(uint8_t id, bool dma_present)
+{
+	NVIC_DisableIRQ(id);
+
+	//if (usel_or_split(id)) {
+		NRF_SPU_S->PERIPHID[id].PERM = SPU_PERIPHID_PERM_PRESENT_Msk | ~SPU_PERIPHID_PERM_SECATTR_Msk |\
+						(dma_present ? SPU_PERIPHID_PERM_DMASEC_Msk : 0) |\
+						SPU_PERIPHID_PERM_LOCK_Msk;
+	//}
+
+	/* Even for non-present peripherals we force IRQs to be routed
+	 * to Non-Secure state.
+	 */
+	//irq_target_state_set(id, 0);
+}
+
+
 int main(void)
 {
     /*Configure flash*/
     for (int region = 0; region < (FLASH_SIZE / FLASH_REGION_SIZE); region++) {
         if (region < 2) {
-            NRF_SPU->FLASHREGION[region].PERM = FLASH_READ | FLASH_WRITE | FLASH_EXEC
-			        | FLASH_LOCK | FLASH_SECURE;
+            NRF_SPU_S->FLASHREGION[region].PERM = SPU_FLASHREGION_PERM_READ_Msk | SPU_FLASHREGION_PERM_WRITE_Msk\
+												| SPU_FLASHREGION_PERM_EXECUTE_Msk | SPU_FLASHREGION_PERM_LOCK_Msk | SPU_FLASHREGION_PERM_SECATTR_Msk;
         } else {
-            NRF_SPU->FLASHREGION[region].PERM = FLASH_READ | FLASH_WRITE | FLASH_EXEC
-			        | FLASH_LOCK | FLASH_SECURE;
+            NRF_SPU_S->FLASHREGION[region].PERM = SPU_FLASHREGION_PERM_READ_Msk | SPU_FLASHREGION_PERM_WRITE_Msk\
+												 | SPU_FLASHREGION_PERM_EXECUTE_Msk | SPU_FLASHREGION_PERM_LOCK_Msk | ~SPU_FLASHREGION_PERM_SECATTR_Msk;
         }
-			
-	}
-
-    for (int i = 0; i < end; i++) {
-			NRF_SPU->FLASHREGION[i].PERM = FLASH_READ | FLASH_WRITE | FLASH_EXEC
-			        | FLASH_LOCK | FLASH_SECURE;
 	}
 
     /*Configure SRAM*/
-    for (int i = 0; i < end; i++) {
-			NRF_SPU->RAMREGION[i].PERM = perm;
+    for (int region = 0; region < (FLASH_SIZE / FLASH_REGION_SIZE); region++) {
+		if (region < 2) {
+            NRF_SPU_S->RAMREGION[region].PERM = SPU_RAMREGION_PERM_READ_Msk | SPU_RAMREGION_PERM_WRITE_Msk\
+												| SPU_RAMREGION_PERM_EXECUTE_Msk | SPU_RAMREGION_PERM_LOCK_Msk | SPU_RAMREGION_PERM_SECATTR_Msk;
+        } else {
+            NRF_SPU_S->RAMREGION[region].PERM = SPU_RAMREGION_PERM_READ_Msk | SPU_RAMREGION_PERM_WRITE_Msk\
+												 | SPU_RAMREGION_PERM_EXECUTE_Msk | SPU_RAMREGION_PERM_LOCK_Msk | ~SPU_RAMREGION_PERM_SECATTR_Msk;
+        }
 	}
 
-    /*Unlock peripherals*/
+    /*Configure peripherals*/
 
 
     /*Jump to non secure context*/
-    jump_ns(0x40000);
+    //jump_ns(0x40000);
+
+	while (1) {
+		;
+	}
 }
 
 

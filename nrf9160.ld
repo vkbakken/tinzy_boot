@@ -11,10 +11,7 @@ SECTIONS
 	.vec_tbl . : {
 		*vec_tbl.o(.text);
 	} > flash
-	.start . : {
-		*start.o(.text);
-	} > flash
-
+	
 	.text : {
 		*(.exception);
 		*(.text*);

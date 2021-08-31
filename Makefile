@@ -8,8 +8,7 @@ CFLAGS			:= -mthumb -mcpu=cortex-m33 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mlittle
 CFLAGS			+= -g -nostdlib -nostdinc -fshort-enums -fno-builtin-printf -ffreestanding -flto
 CFLAGS			+= 
 
-CFILES			:= main.c
-#CFILES			+= ./nrfx/mdk/system_nrf9160.c
+CFILES			:= main.c terminal.c snprintf.c errata.c
 CINC			:= -I ./nrfx/mdk/ -I ./CMSIS_5/CMSIS/Core/Include
 
 CFLAGS			:= -Wall -Os -mcpu=cortex-m33 -mlittle-endian -mfloat-abi=soft -mthumb -mtp=soft -munaligned-access

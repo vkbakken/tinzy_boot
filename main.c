@@ -103,17 +103,16 @@ int main(void)
 	}
 
     /*Configure peripherals*/
-
+    
 
     /*Prepare tz stuff*/
 
 
-    /*Jump to non secure context*/
-    //jump_ns(0x40000);
+    /*Clean up current context*/
 
-	while (1) {
-		;
-	}
+
+    /*Jump to next image*/
+    //jump_ns(0x40000);
 }
 
 
@@ -143,6 +142,9 @@ static void __start(void)
 	main();
 
 	/*If main was ever to return we stop here.*/
-	__asm volatile( "cpsid i" ::: "memory" );
-	while (1) { ; }
+	asm volatile( "cpsid i" ::: "memory" );
+	while (1) {
+        asm volatile("dsb\n\t");
+        asm volatile("wfi\n\t");
+     }
 }
